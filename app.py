@@ -35,7 +35,7 @@ model, FEATURES, scaler, feature_importance = load_artifacts()
 @st.cache_data
 def load_data():
     df = pd.read_csv(
-        "/Users/leenasingh/Documents/ML Projects/Employee Attrition Project Coursera/Data/employee_data.csv"
+        "Data/employee_data.csv"
     )
     return df
 
