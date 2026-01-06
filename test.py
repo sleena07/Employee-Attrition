@@ -48,12 +48,7 @@ df_raw = load_data()
 # Basic preprocessing (shared)
 # ============================
 df_raw=df_raw[df_raw['Attrition']=="No"]
-df_raw=df_raw.drop(columns=['Attrition', 'YearsAtCompany',
-    'YearsInCurrentRole',
-    'YearsSinceLastPromotion',
-    'YearsWithCurrManager',
-    'StockOptionLevel',
-    'Attrition'])
+
 
 
 
@@ -165,6 +160,13 @@ df_ui_filtered = df_ui.loc[
 # ============================
 
 df_raw["OverTime"] = df_raw["OverTime"].map({"Yes": 1, "No": 0})
+
+df_raw=df_raw.drop(columns=['Attrition', 'YearsAtCompany',
+    'YearsInCurrentRole',
+    'YearsSinceLastPromotion',
+    'YearsWithCurrManager',
+    'StockOptionLevel',
+    'Attrition'])
 
 df_model = pd.get_dummies(
     df_raw,
