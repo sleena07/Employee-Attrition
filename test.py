@@ -52,8 +52,9 @@ df_raw=df_raw.drop(columns=['Attrition', 'YearsAtCompany',
     'YearsInCurrentRole',
     'YearsSinceLastPromotion',
     'YearsWithCurrManager',
-    'StockOptionLevel'])
-df_raw["OverTime"] = df_raw["OverTime"].map({"Yes": 1, "No": 0})
+    'StockOptionLevel',
+    'Attrition'])
+
 
 
 # ============================
@@ -74,26 +75,27 @@ def age_bucket(age):
         return "45-54 (Senior)"
     else:
         return "55-60 (Pre-Retirement)"
+ 
+   
+#Job level group    
+def job_level_bucket(level):
+    if  level== 1:
+        return "Entry (L1)"
+    elif level== 2:
+        return "Junior (L2)"
+    elif level== 3:
+        return "Mid (L3)"
+    elif level == 4:
+        return "Senior (L4)"
+    else:
+        return "Leadership (L5)"
 
 
 df_ui["Age_Group"] = df_ui["Age"].apply(age_bucket)
+df_ui["Job_Level_Group"]=df_ui["JobLevel"].apply(job_level_bucket)
 
 
-# ============================
-# Model dataframe (ENCODED)
-# ============================
-df_model = pd.get_dummies(
-    df_raw,
-    columns=[
-        "MaritalStatus",
-        "Gender",
-        "Department",
-        "BusinessTravel",
-        "EducationField",
-        "JobRole",
-    ],
-    drop_first=False
-)
+
 
 
 # ============================
@@ -113,22 +115,27 @@ department = st.sidebar.multiselect(
 
 job_level = st.sidebar.multiselect(
     "Job Level",
-    sorted(df_ui["JobLevel"].unique()),
-    default=sorted(df_ui["JobLevel"].unique()),
+    sorted(df_ui["Job_Level_Group"].unique()),
+    default=sorted(df_ui["Job_Level_Group"].unique()),
 )
 
 
+job_role = st.sidebar.multiselect(
+    "Job Role",
+    df_ui["JobRole"].unique(),
+    default=df_ui["JobRole"].unique(),
+)
+
+overtime = st.sidebar.multiselect(
+    "OverTime",
+    sorted(df_ui["OverTime"].unique()),
+    default=sorted(df_ui["OverTime"].unique()),
+)
 
 age_group = st.sidebar.multiselect(
     "Age Group",
-    df_ui["Age_Group"].unique(),
-    default=df_ui["Age_Group"].unique(),
-)
-
-job_satisfaction = st.sidebar.multiselect(
-    "Job Satisfaction",
-    sorted(df_ui["JobSatisfaction"].unique()),
-    default=sorted(df_ui["JobSatisfaction"].unique()),
+    sorted(df_ui["Age_Group"].unique()),
+    default=sorted(df_ui["Age_Group"].unique()),
 )
 
 
@@ -137,10 +144,31 @@ job_satisfaction = st.sidebar.multiselect(
 # ============================
 df_ui_filtered = df_ui.loc[
     (df_ui["Department"].isin(department))
-    & (df_ui["JobLevel"].isin(job_level))
+    & (df_ui["Job_Level_Group"].isin(job_level))
+    & (df_ui["OverTime"].isin(overtime))
+    & (df_ui["JobRole"].isin(job_role))
     & (df_ui["Age_Group"].isin(age_group))
-    & (df_ui["JobSatisfaction"].isin(job_satisfaction))
 ]
+
+
+# ============================
+# Model dataframe (ENCODED)
+# ============================
+
+df_raw["OverTime"] = df_raw["OverTime"].map({"Yes": 1, "No": 0})
+
+df_model = pd.get_dummies(
+    df_raw,
+    columns=[
+        "MaritalStatus",
+        "Gender",
+        "Department",
+        "BusinessTravel",
+        "EducationField",
+        "JobRole",
+    ],
+    drop_first=False
+)
 
 
 # ============================
@@ -275,16 +303,16 @@ top_features = feat_imp_grouped.sort_values(ascending=False).head(top_n)
 
 
 # Streamlit title
-st.subheader("Top 5 Feature Importances")
+st.subheader(f"Top {top_n} Factors Influencing Employee Attrition Risk")
 
 # Plot in matplotlib
 fig, ax = plt.subplots(figsize=(8,5))
 top_features.sort_values(ascending=True).plot(kind='barh', ax=ax, color='skyblue')
-ax.set_xlabel("Normalized Importance")
+ax.set_xlabel("Influence Strength (Model-Based)")
 ax.set_ylabel("Features")
-ax.set_title(f"Top {top_n} Features by Importance")
 
 
+st.caption("Higher value = stronger influence on attrition prediction")
 
 # Display in Streamlit
 st.pyplot(fig)
