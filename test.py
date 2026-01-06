@@ -113,30 +113,39 @@ department = st.sidebar.multiselect(
     default=df_ui["Department"].unique(),
 )
 
-job_level = st.sidebar.multiselect(
-    "Job Level",
-    sorted(df_ui["Job_Level_Group"].unique()),
-    default=sorted(df_ui["Job_Level_Group"].unique()),
-)
-
+df_dept = df_ui[df_ui["Department"].isin(department)]
 
 job_role = st.sidebar.multiselect(
     "Job Role",
-    df_ui["JobRole"].unique(),
-    default=df_ui["JobRole"].unique(),
+    df_dept["JobRole"].unique(),
+    default=df_dept["JobRole"].unique(),
 )
+
+df_role = df_dept[df_dept["JobRole"].isin(job_role)]
+
+job_level = st.sidebar.multiselect(
+    "Job Level",
+    sorted(df_role["Job_Level_Group"].unique()),
+    default=sorted(df_role["Job_Level_Group"].unique()),
+)
+
+df_level = df_role[df_role["Job_Level_Group"].isin(job_level)]
 
 overtime = st.sidebar.multiselect(
     "OverTime",
-    sorted(df_ui["OverTime"].unique()),
-    default=sorted(df_ui["OverTime"].unique()),
+    sorted(df_level["OverTime"].unique()),
+    default=sorted(df_level["OverTime"].unique()),
 )
+
+df_overtime = df_level[df_level["OverTime"].isin(overtime)]
 
 age_group = st.sidebar.multiselect(
     "Age Group",
-    sorted(df_ui["Age_Group"].unique()),
-    default=sorted(df_ui["Age_Group"].unique()),
+    sorted(df_overtime["Age_Group"].unique()),
+    default=sorted(df_overtime["Age_Group"].unique()),
 )
+
+df_ui_filtered = df_overtime[df_overtime["Age_Group"].isin(age_group)]
 
 
 # ============================
